@@ -6,7 +6,8 @@
       "Bash(npx @angular/cli@17 new frontend --routing=true --style=css --standalone=true --skip-git=true --package-manager=npm)",
       "Bash(npm install:*)",
       "Bash(npx tailwindcss:*)",
-      "Bash(npx ng:*)"
+      "Bash(npx ng:*)",
+      "Bash(ls \"c:\\\\Users\\\\Fraug\\\\Desktop\\\\Portafolio\\\\backend\"\" 2>/dev/null || echo \"listing \")"
     ]
   }
 }

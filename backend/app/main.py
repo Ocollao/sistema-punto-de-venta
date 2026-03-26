@@ -1,7 +1,24 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.database import engine, Base
+from app.database import engine, Base, crear_base_de_datos
 from app.routers import auth, categorias, productos, ventas, clientes
+from app.seed import ejecutar_seed
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    import time
+    for intento in range(10):
+        try:
+            crear_base_de_datos()
+            Base.metadata.create_all(bind=engine)
+            ejecutar_seed()
+            break
+        except Exception as e:
+            print(f"Base de datos no disponible, reintentando ({intento + 1}/10)... {e}")
+            time.sleep(3)
+    yield
 
 app = FastAPI(
     title="Sistema POS",
@@ -9,6 +26,7 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -18,8 +36,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-Base.metadata.create_all(bind=engine)
 
 app.include_router(auth.router,        prefix="/api/auth",       tags=["Autenticación"])
 app.include_router(categorias.router,  prefix="/api/categorias", tags=["Categorías"])
