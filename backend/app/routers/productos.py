@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
-import os, uuid, shutil
+import os
+import uuid
+import shutil
 from app.database import get_db
 from app.models.producto import Producto
 from app.schemas.producto import ProductoCreate, ProductoUpdate, ProductoResponse
