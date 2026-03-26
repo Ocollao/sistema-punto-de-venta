@@ -1,0 +1,160 @@
+<div class="p-6 space-y-6">
+
+  <!-- Encabezado -->
+  <div>
+    <h2 class="text-2xl font-bold text-slate-800">Dashboard</h2>
+    <p class="text-slate-500 text-sm mt-0.5">Resumen de ventas y estadísticas del negocio</p>
+  </div>
+
+  <!-- Cargando -->
+  <div *ngIf="cargando" class="flex items-center justify-center py-24">
+    <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+  </div>
+
+  <ng-container *ngIf="!cargando">
+
+    <!-- ─── Tarjetas KPI ─── -->
+    <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+
+      <!-- Total ventas -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm font-medium text-slate-500">Total Ventas</p>
+          <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+          </div>
+        </div>
+        <p class="text-3xl font-extrabold text-slate-800">{{ resumen?.total_ventas ?? 0 }}</p>
+        <p class="text-xs text-slate-400 mt-1">Ventas registradas</p>
+      </div>
+
+      <!-- Ingresos totales -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm font-medium text-slate-500">Ingresos Totales</p>
+          <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+        </div>
+        <p class="text-3xl font-extrabold text-slate-800">{{ formatearMonto(resumen?.ingresos_totales ?? 0) }}</p>
+        <p class="text-xs text-slate-400 mt-1">Ingresos totales</p>
+      </div>
+
+      <!-- Ticket promedio -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm font-medium text-slate-500">Ticket Promedio</p>
+          <div class="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+            </svg>
+          </div>
+        </div>
+        <p class="text-3xl font-extrabold text-slate-800">{{ formatearMonto(resumen?.ticket_promedio ?? 0) }}</p>
+        <p class="text-xs text-slate-400 mt-1">Por venta en promedio</p>
+      </div>
+
+      <!-- Productos con stock bajo -->
+      <div class="bg-white rounded-xl border shadow-sm p-5"
+        [ngClass]="stockBajo.length > 0 ? 'border-red-200 bg-red-50' : 'border-slate-200'">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm font-medium" [ngClass]="stockBajo.length > 0 ? 'text-red-600' : 'text-slate-500'">
+            Stock Bajo
+          </p>
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+            [ngClass]="stockBajo.length > 0 ? 'bg-red-100' : 'bg-slate-100'">
+            <svg class="w-5 h-5" [ngClass]="stockBajo.length > 0 ? 'text-red-600' : 'text-slate-400'"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+          </div>
+        </div>
+        <p class="text-3xl font-extrabold" [ngClass]="stockBajo.length > 0 ? 'text-red-700' : 'text-slate-800'">
+          {{ stockBajo.length }}
+        </p>
+        <p class="text-xs mt-1" [ngClass]="stockBajo.length > 0 ? 'text-red-500' : 'text-slate-400'">
+          {{ stockBajo.length > 0 ? 'Productos necesitan reabastecimiento' : 'Sin alertas de stock' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- ─── Gráficos ─── -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+
+      <!-- Línea: ventas por día -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <h3 class="font-semibold text-slate-800 mb-1">Ingresos últimos 7 días</h3>
+        <p class="text-xs text-slate-400 mb-4">Evolución diaria de ingresos por ventas completadas</p>
+        <div class="relative h-52">
+          <canvas #lineCanvas></canvas>
+          <div *ngIf="!resumen || resumen.total_ventas === 0"
+            class="absolute inset-0 flex items-center justify-center text-slate-300 text-sm">
+            Sin datos de ventas aún
+          </div>
+        </div>
+      </div>
+
+      <!-- Barras: top productos -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <h3 class="font-semibold text-slate-800 mb-1">Productos más vendidos</h3>
+        <p class="text-xs text-slate-400 mb-4">Top 5 por unidades vendidas</p>
+        <div class="relative h-52">
+          <canvas #barCanvas></canvas>
+          <div *ngIf="topProductos.length === 0"
+            class="absolute inset-0 flex items-center justify-center text-slate-300 text-sm">
+            Sin ventas registradas aún
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Tabla: stock bajo ─── -->
+    <div *ngIf="stockBajo.length > 0"
+      class="bg-white rounded-xl border border-red-200 shadow-sm overflow-hidden">
+      <div class="px-5 py-4 bg-red-50 border-b border-red-200 flex items-center gap-2">
+        <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <h3 class="font-semibold text-red-700 text-sm">Productos con stock bajo — requieren reabastecimiento</h3>
+      </div>
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 border-b border-slate-200">
+          <tr>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Producto</th>
+            <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Stock actual</th>
+            <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Stock mínimo</th>
+            <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Estado</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr *ngFor="let p of stockBajo" class="hover:bg-red-50 transition-colors">
+            <td class="px-5 py-3 font-medium text-slate-800">{{ p.nombre }}</td>
+            <td class="px-5 py-3 text-center">
+              <span class="bg-red-100 text-red-700 text-xs font-bold px-2.5 py-1 rounded-full">{{ p.stock }}</span>
+            </td>
+            <td class="px-5 py-3 text-center text-slate-500 text-xs">{{ p.stock_minimo }}</td>
+            <td class="px-5 py-3 text-center">
+              <span [ngClass]="p.stock === 0
+                ? 'bg-red-600 text-white'
+                : 'bg-orange-100 text-orange-700'"
+                class="text-xs font-semibold px-2.5 py-1 rounded-full">
+                {{ p.stock === 0 ? 'Sin stock' : 'Bajo mínimo' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </ng-container>
+
+</div>

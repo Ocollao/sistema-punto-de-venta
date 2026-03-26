@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func, cast, Date
 from typing import List, Optional
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from app.database import get_db
 from app.models.venta import Venta
 from app.models.detalle_venta import DetalleVenta
 from app.models.producto import Producto
 from app.models.usuario import Usuario
-from app.schemas.venta import VentaCreate, VentaResponse, ResumenReporte
+from app.schemas.venta import VentaCreate, VentaResponse, ResumenReporte, VentaPorDia, TopProducto
 from app.utils.security import get_current_user
 
 router = APIRouter()
@@ -119,6 +120,50 @@ def resumen_reporte(
         ticket_promedio=ticket_promedio,
         productos_vendidos=productos_vendidos,
     )
+
+
+@router.get("/reporte/por-dia", response_model=List[VentaPorDia])
+def ventas_por_dia(
+    dias: int = Query(default=7),
+    db: Session = Depends(get_db),
+    _=Depends(get_current_user),
+):
+    fecha_inicio = date.today() - timedelta(days=dias - 1)
+    resultados = (
+        db.query(
+            cast(Venta.creado_en, Date).label("fecha"),
+            func.count(Venta.id).label("total_ventas"),
+            func.sum(Venta.total).label("ingresos"),
+        )
+        .filter(Venta.estado == "completada", Venta.creado_en >= fecha_inicio)
+        .group_by(cast(Venta.creado_en, Date))
+        .order_by(cast(Venta.creado_en, Date))
+        .all()
+    )
+    return [{"fecha": str(r.fecha), "total_ventas": r.total_ventas, "ingresos": r.ingresos or 0.0} for r in resultados]
+
+
+@router.get("/reporte/top-productos", response_model=List[TopProducto])
+def top_productos(
+    limite: int = Query(default=5),
+    db: Session = Depends(get_db),
+    _=Depends(get_current_user),
+):
+    resultados = (
+        db.query(
+            Producto.nombre,
+            func.sum(DetalleVenta.cantidad).label("cantidad_vendida"),
+            func.sum(DetalleVenta.subtotal).label("ingresos"),
+        )
+        .join(DetalleVenta, DetalleVenta.producto_id == Producto.id)
+        .join(Venta, Venta.id == DetalleVenta.venta_id)
+        .filter(Venta.estado == "completada")
+        .group_by(Producto.nombre)
+        .order_by(func.sum(DetalleVenta.cantidad).desc())
+        .limit(limite)
+        .all()
+    )
+    return [{"nombre": r.nombre, "cantidad_vendida": r.cantidad_vendida, "ingresos": r.ingresos or 0.0} for r in resultados]
 
 
 @router.get("/{venta_id}", response_model=VentaResponse)

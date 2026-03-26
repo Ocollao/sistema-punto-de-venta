@@ -1,0 +1,183 @@
+<div class="flex h-full overflow-hidden">
+
+  <!-- ═══════════════════════════════════════
+       Panel izquierdo: catálogo de productos
+  ════════════════════════════════════════ -->
+  <div class="flex-1 flex flex-col p-6 overflow-hidden">
+
+    <!-- Buscador -->
+    <div class="relative mb-4">
+      <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+      </svg>
+      <input [formControl]="busquedaCtrl" type="text"
+        placeholder="Buscar producto por nombre o código..."
+        class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm
+               focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"/>
+    </div>
+
+    <!-- Grilla de productos -->
+    <div class="flex-1 overflow-y-auto pr-1">
+      <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+        <button *ngFor="let p of productos" (click)="agregarAlCarrito(p)"
+          class="bg-white border border-slate-200 rounded-xl p-4 text-left
+                 hover:border-blue-400 hover:shadow-md transition-all active:scale-95 group">
+          <div class="flex items-start justify-between mb-2">
+            <code class="text-xs text-slate-400">{{ p.codigo }}</code>
+            <span [ngClass]="p.stock <= p.stock_minimo
+              ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-700'"
+              class="text-xs px-1.5 py-0.5 rounded font-semibold">
+              {{ p.stock }}
+            </span>
+          </div>
+          <p class="font-semibold text-slate-800 text-sm leading-tight mb-2 group-hover:text-blue-700 transition-colors">
+            {{ p.nombre }}
+          </p>
+          <p class="text-blue-600 font-bold">{{ formatearMonto(p.precio) }}</p>
+        </button>
+      </div>
+
+      <div *ngIf="productos.length === 0" class="text-center py-16">
+        <svg class="w-12 h-12 text-slate-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+        </svg>
+        <p class="text-slate-400">No hay productos disponibles con stock</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       Panel derecho: carrito y pago
+  ════════════════════════════════════════ -->
+  <div class="w-80 bg-white border-l border-slate-200 flex flex-col shadow-lg">
+
+    <!-- Encabezado carrito -->
+    <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+      <div>
+        <h3 class="font-bold text-slate-800 text-base">Carrito</h3>
+        <p class="text-xs text-slate-400 mt-0.5">
+          {{ totalItems }} {{ totalItems === 1 ? 'producto' : 'productos' }}
+        </p>
+      </div>
+      <button *ngIf="carrito.length > 0" (click)="limpiarCarrito()"
+        class="text-xs text-slate-400 hover:text-red-500 font-medium transition-colors">
+        Limpiar todo
+      </button>
+    </div>
+
+    <!-- Ítems del carrito -->
+    <div class="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+      <div *ngIf="carrito.length === 0" class="text-center py-12">
+        <svg class="w-12 h-12 text-slate-200 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        <p class="text-slate-400 text-sm">Selecciona productos del panel izquierdo</p>
+      </div>
+
+      <div *ngFor="let item of carrito"
+        class="bg-slate-50 rounded-xl p-3 flex items-center gap-2">
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-slate-800 truncate">{{ item.producto.nombre }}</p>
+          <p class="text-xs text-blue-600 font-semibold">{{ formatearMonto(item.producto.precio) }}</p>
+        </div>
+        <div class="flex items-center gap-1 shrink-0">
+          <button (click)="cambiarCantidad(item, -1)"
+            class="w-6 h-6 bg-white border border-slate-200 rounded-lg text-slate-500
+                   hover:bg-red-50 hover:border-red-200 hover:text-red-500 text-xs font-bold
+                   flex items-center justify-center transition-colors">−</button>
+          <span class="w-6 text-center text-sm font-bold text-slate-800">{{ item.cantidad }}</span>
+          <button (click)="cambiarCantidad(item, 1)"
+            class="w-6 h-6 bg-white border border-slate-200 rounded-lg text-slate-500
+                   hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-600 text-xs font-bold
+                   flex items-center justify-center transition-colors">+</button>
+        </div>
+        <div class="text-right min-w-16 shrink-0">
+          <p class="text-sm font-bold text-slate-800">{{ formatearMonto(item.producto.precio * item.cantidad) }}</p>
+          <button (click)="removerDelCarrito(item)"
+            class="text-xs text-red-400 hover:text-red-600 transition-colors">quitar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen y pago -->
+    <div class="border-t border-slate-200 px-5 py-4 space-y-4">
+
+      <!-- Descuento -->
+      <div class="flex items-center gap-3">
+        <label class="text-sm text-slate-600 whitespace-nowrap shrink-0">Descuento ($)</label>
+        <input [formControl]="descuentoCtrl" type="number" min="0"
+          class="flex-1 border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-right
+                 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+      </div>
+
+      <!-- Totales -->
+      <div class="space-y-1 py-3 border-t border-b border-slate-100">
+        <div class="flex justify-between text-sm text-slate-500">
+          <span>Subtotal</span>
+          <span>{{ formatearMonto(subtotal) }}</span>
+        </div>
+        <div *ngIf="descuento > 0" class="flex justify-between text-sm text-emerald-600 font-medium">
+          <span>Descuento</span>
+          <span>−{{ formatearMonto(descuento) }}</span>
+        </div>
+        <div class="flex justify-between items-center pt-2">
+          <span class="font-bold text-slate-800">Total</span>
+          <span class="text-xl font-extrabold text-blue-600">{{ formatearMonto(total) }}</span>
+        </div>
+      </div>
+
+      <!-- Método de pago -->
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Método de pago</p>
+        <div class="grid grid-cols-3 gap-2">
+          <button *ngFor="let mp of metodosPago" (click)="metodoPago = mp.valor"
+            [ngClass]="metodoPago === mp.valor
+              ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+              : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600'"
+            class="border rounded-lg py-2 text-xs font-semibold transition-all">
+            {{ mp.etiqueta }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Botón procesar venta -->
+      <button (click)="procesarVenta()" [disabled]="carrito.length === 0 || procesando"
+        class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400
+               disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors
+               text-sm shadow-sm">
+        {{ procesando ? 'Procesando...' : 'Procesar Venta' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       Modal de venta exitosa
+  ════════════════════════════════════════ -->
+  <div *ngIf="ventaExitosa"
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm text-center p-8">
+      <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold text-slate-800 mb-1">¡Venta exitosa!</h3>
+      <p class="text-slate-400 text-sm mb-4">Boleta N° <span class="font-semibold text-slate-600">{{ ventaExitosa.numero_boleta }}</span></p>
+      <p class="text-4xl font-extrabold text-blue-600 mb-1">{{ formatearMonto(ventaExitosa.total) }}</p>
+      <p class="text-sm text-slate-400 mb-2">
+        Pago: <span class="capitalize font-medium text-slate-600">{{ ventaExitosa.metodo_pago }}</span>
+      </p>
+      <p *ngIf="ventaExitosa.descuento > 0" class="text-xs text-emerald-600 mb-6">
+        Descuento aplicado: {{ formatearMonto(ventaExitosa.descuento) }}
+      </p>
+      <button (click)="cerrarModalExito()"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-colors">
+        Nueva venta
+      </button>
+    </div>
+  </div>
+</div>

@@ -50,3 +50,15 @@ class ResumenReporte(BaseModel):
     ingresos_totales: float
     ticket_promedio: float
     productos_vendidos: int
+
+
+class VentaPorDia(BaseModel):
+    fecha: str
+    total_ventas: int
+    ingresos: float
+
+
+class TopProducto(BaseModel):
+    nombre: str
+    cantidad_vendida: int
+    ingresos: float
