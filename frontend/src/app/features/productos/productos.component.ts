@@ -145,6 +145,33 @@ export class ProductosComponent implements OnInit {
     this.productoAEliminar = null;
   }
 
+  exportarStockBajoCSV() {
+    const bajos = this.productos.filter(p => p.stock <= p.stock_minimo);
+    if (bajos.length === 0) {
+      this.toast.info('No hay productos con stock bajo');
+      return;
+    }
+
+    const cabecera = ['Código', 'Nombre', 'Categoría', 'Stock actual', 'Stock mínimo', 'Precio'];
+    const filas = bajos.map(p => [
+      p.codigo, p.nombre, p.categoria_nombre ?? 'Sin categoría',
+      p.stock, p.stock_minimo, p.precio,
+    ]);
+
+    const csv = [cabecera, ...filas]
+      .map(f => f.map(c => `"${c}"`).join(';'))
+      .join('\n');
+
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `stock_bajo_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this.toast.exito(`${bajos.length} productos exportados`);
+  }
+
   formatearMonto(valor: number): string {
     return new Intl.NumberFormat('es-CL', {
       style: 'currency', currency: 'CLP', minimumFractionDigits: 0,
