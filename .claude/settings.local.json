@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npx @angular/cli@17 new frontend --directory \"c:/Users/Fraug/Desktop/Portafolio/frontend\" --routing=true --style=css --standalone=true --skip-git=true --package-manager=npm)",
+      "Bash(npx @angular/cli@17 new frontend --routing=true --style=css --standalone=true --skip-git=true --package-manager=npm)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npx ng:*)"
+    ]
+  }
+}
