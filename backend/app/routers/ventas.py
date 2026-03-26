@@ -29,7 +29,7 @@ def crear_venta(
     detalles = []
 
     for item in datos.items:
-        producto = db.query(Producto).filter(Producto.id == item.producto_id, Producto.activo == True).first()
+        producto = db.query(Producto).filter(Producto.id == item.producto_id, Producto.activo).first()
         if not producto:
             raise HTTPException(status_code=404, detail=f"Producto ID {item.producto_id} no encontrado")
         if producto.stock < item.cantidad:
@@ -163,7 +163,10 @@ def top_productos(
         .limit(limite)
         .all()
     )
-    return [{"nombre": r.nombre, "cantidad_vendida": r.cantidad_vendida, "ingresos": r.ingresos or 0.0} for r in resultados]
+    return [
+        {"nombre": r.nombre, "cantidad_vendida": r.cantidad_vendida, "ingresos": r.ingresos or 0.0}
+        for r in resultados
+    ]
 
 
 @router.get("/{venta_id}", response_model=VentaResponse)

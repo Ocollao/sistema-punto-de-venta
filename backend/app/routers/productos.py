@@ -17,7 +17,7 @@ def listar_productos(
     db: Session = Depends(get_db),
     _=Depends(get_current_user),
 ):
-    query = db.query(Producto).options(joinedload(Producto.categoria)).filter(Producto.activo == True)
+    query = db.query(Producto).options(joinedload(Producto.categoria)).filter(Producto.activo)
 
     if busqueda:
         query = query.filter(
@@ -39,7 +39,7 @@ def listar_productos(
 
 @router.get("/{producto_id}", response_model=ProductoResponse)
 def obtener_producto(producto_id: int, db: Session = Depends(get_db), _=Depends(get_current_user)):
-    producto = db.query(Producto).filter(Producto.id == producto_id, Producto.activo == True).first()
+    producto = db.query(Producto).filter(Producto.id == producto_id, Producto.activo).first()
     if not producto:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
     return producto

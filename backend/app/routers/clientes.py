@@ -15,7 +15,7 @@ def listar_clientes(
     db: Session = Depends(get_db),
     _=Depends(get_current_user),
 ):
-    query = db.query(Cliente).filter(Cliente.activo == True)
+    query = db.query(Cliente).filter(Cliente.activo)
     if busqueda:
         query = query.filter(
             Cliente.nombre.ilike(f"%{busqueda}%") | Cliente.rut.ilike(f"%{busqueda}%")

@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.get("/", response_model=List[CategoriaResponse])
 def listar_categorias(db: Session = Depends(get_db), _=Depends(get_current_user)):
-    return db.query(Categoria).filter(Categoria.activo == True).all()
+    return db.query(Categoria).filter(Categoria.activo).all()
 
 
 @router.post("/", response_model=CategoriaResponse, status_code=status.HTTP_201_CREATED)
