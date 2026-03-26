@@ -1,9 +1,14 @@
 <div class="flex h-full overflow-hidden">
 
-  <!-- ═══════════════════════════════════════
-       Panel izquierdo: catálogo de productos
-  ════════════════════════════════════════ -->
-  <div class="flex-1 flex flex-col p-6 overflow-hidden">
+  <!-- ══════════════════════════════════════════════════
+       Panel izquierdo: catálogo — desktop siempre visible,
+       móvil solo cuando vistaMovil === 'productos'
+  ═══════════════════════════════════════════════════ -->
+  <div class="flex-1 flex flex-col p-4 md:p-6 overflow-hidden"
+    [ngClass]="{'hidden': vistaMovil === 'carrito'}"
+    [class.lg:flex]="true">
+    <div class="lg:block" [class.hidden]="vistaMovil === 'carrito'">
+    </div>
 
     <!-- Buscador -->
     <div class="relative mb-4">
@@ -22,20 +27,20 @@
     <div class="flex-1 overflow-y-auto pr-1">
       <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
         <button *ngFor="let p of productos" (click)="agregarAlCarrito(p)"
-          class="bg-white border border-slate-200 rounded-xl p-4 text-left
+          class="bg-white border border-slate-200 rounded-xl p-3 md:p-4 text-left
                  hover:border-blue-400 hover:shadow-md transition-all active:scale-95 group">
           <div class="flex items-start justify-between mb-2">
-            <code class="text-xs text-slate-400">{{ p.codigo }}</code>
+            <code class="text-xs text-slate-400 truncate max-w-16">{{ p.codigo }}</code>
             <span [ngClass]="p.stock <= p.stock_minimo
               ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-700'"
-              class="text-xs px-1.5 py-0.5 rounded font-semibold">
+              class="text-xs px-1.5 py-0.5 rounded font-semibold shrink-0">
               {{ p.stock }}
             </span>
           </div>
-          <p class="font-semibold text-slate-800 text-sm leading-tight mb-2 group-hover:text-blue-700 transition-colors">
+          <p class="font-semibold text-slate-800 text-sm leading-tight mb-2 group-hover:text-blue-700 transition-colors line-clamp-2">
             {{ p.nombre }}
           </p>
-          <p class="text-blue-600 font-bold">{{ formatearMonto(p.precio) }}</p>
+          <p class="text-blue-600 font-bold text-sm">{{ formatearMonto(p.precio) }}</p>
         </button>
       </div>
 
@@ -49,10 +54,12 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════
-       Panel derecho: carrito y pago
-  ════════════════════════════════════════ -->
-  <div class="w-80 bg-white border-l border-slate-200 flex flex-col shadow-lg">
+  <!-- ══════════════════════════════════════════════════
+       Panel derecho: carrito — desktop siempre visible,
+       móvil solo cuando vistaMovil === 'carrito'
+  ═══════════════════════════════════════════════════ -->
+  <div class="w-full lg:w-80 bg-white border-l border-slate-200 flex flex-col shadow-lg"
+    [ngClass]="{'hidden lg:flex': vistaMovil === 'productos', 'flex': vistaMovil === 'carrito'}">
 
     <!-- Encabezado carrito -->
     <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
@@ -62,10 +69,19 @@
           {{ totalItems }} {{ totalItems === 1 ? 'producto' : 'productos' }}
         </p>
       </div>
-      <button *ngIf="carrito.length > 0" (click)="limpiarCarrito()"
-        class="text-xs text-slate-400 hover:text-red-500 font-medium transition-colors">
-        Limpiar todo
-      </button>
+      <div class="flex items-center gap-2">
+        <button *ngIf="carrito.length > 0" (click)="limpiarCarrito()"
+          class="text-xs text-slate-400 hover:text-red-500 font-medium transition-colors">
+          Limpiar todo
+        </button>
+        <!-- Volver a productos en móvil -->
+        <button (click)="vistaMovil = 'productos'"
+          class="lg:hidden p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- Ítems del carrito -->
@@ -75,7 +91,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
         </svg>
-        <p class="text-slate-400 text-sm">Selecciona productos del panel izquierdo</p>
+        <p class="text-slate-400 text-sm">Selecciona productos del catálogo</p>
       </div>
 
       <div *ngFor="let item of carrito"
@@ -86,12 +102,12 @@
         </div>
         <div class="flex items-center gap-1 shrink-0">
           <button (click)="cambiarCantidad(item, -1)"
-            class="w-6 h-6 bg-white border border-slate-200 rounded-lg text-slate-500
+            class="w-7 h-7 bg-white border border-slate-200 rounded-lg text-slate-500
                    hover:bg-red-50 hover:border-red-200 hover:text-red-500 text-xs font-bold
                    flex items-center justify-center transition-colors">−</button>
-          <span class="w-6 text-center text-sm font-bold text-slate-800">{{ item.cantidad }}</span>
+          <span class="w-7 text-center text-sm font-bold text-slate-800">{{ item.cantidad }}</span>
           <button (click)="cambiarCantidad(item, 1)"
-            class="w-6 h-6 bg-white border border-slate-200 rounded-lg text-slate-500
+            class="w-7 h-7 bg-white border border-slate-200 rounded-lg text-slate-500
                    hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-600 text-xs font-bold
                    flex items-center justify-center transition-colors">+</button>
         </div>
@@ -105,8 +121,6 @@
 
     <!-- Resumen y pago -->
     <div class="border-t border-slate-200 px-5 py-4 space-y-4">
-
-      <!-- Descuento -->
       <div class="flex items-center gap-3">
         <label class="text-sm text-slate-600 whitespace-nowrap shrink-0">Descuento ($)</label>
         <input [formControl]="descuentoCtrl" type="number" min="0"
@@ -114,7 +128,6 @@
                  focus:outline-none focus:ring-2 focus:ring-blue-500"/>
       </div>
 
-      <!-- Totales -->
       <div class="space-y-1 py-3 border-t border-b border-slate-100">
         <div class="flex justify-between text-sm text-slate-500">
           <span>Subtotal</span>
@@ -130,7 +143,6 @@
         </div>
       </div>
 
-      <!-- Método de pago -->
       <div>
         <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Método de pago</p>
         <div class="grid grid-cols-3 gap-2">
@@ -144,7 +156,6 @@
         </div>
       </div>
 
-      <!-- Botón procesar venta -->
       <button (click)="procesarVenta()" [disabled]="carrito.length === 0 || procesando"
         class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400
                disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors
@@ -154,9 +165,23 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════
-       Modal de venta exitosa
-  ════════════════════════════════════════ -->
+  <!-- ── Botón flotante carrito (solo móvil) ── -->
+  <button *ngIf="vistaMovil === 'productos'"
+    (click)="vistaMovil = 'carrito'"
+    class="lg:hidden fixed bottom-6 right-6 z-20 bg-blue-600 hover:bg-blue-700 text-white
+           rounded-2xl px-5 py-3 shadow-xl flex items-center gap-3 transition-all active:scale-95">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+    </svg>
+    <span class="font-semibold text-sm">Ver carrito</span>
+    <span *ngIf="totalItems > 0"
+      class="bg-white text-blue-600 text-xs font-extrabold rounded-full w-6 h-6 flex items-center justify-center">
+      {{ totalItems }}
+    </span>
+  </button>
+
+  <!-- ── Modal venta exitosa ── -->
   <div *ngIf="ventaExitosa"
     class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm text-center p-8">

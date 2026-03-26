@@ -31,6 +31,7 @@ export class CajaComponent implements OnInit {
   metodoPago: 'efectivo' | 'debito' | 'credito' = 'efectivo';
   procesando = false;
   ventaExitosa: Venta | null = null;
+  vistaMovil: 'productos' | 'carrito' = 'productos';
 
   readonly metodosPago = [
     { valor: 'efectivo', etiqueta: 'Efectivo' },
@@ -97,7 +98,7 @@ export class CajaComponent implements OnInit {
       descuento: this.descuento,
       metodo_pago: this.metodoPago,
     }).subscribe({
-      next: v => { this.ventaExitosa = v; this.limpiarCarrito(); this.procesando = false; },
+      next: v => { this.ventaExitosa = v; this.limpiarCarrito(); this.procesando = false; this.vistaMovil = 'productos'; },
       error: () => { this.procesando = false; },
     });
   }
