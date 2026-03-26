@@ -4,6 +4,7 @@ import { NgIf, NgFor, NgClass } from '@angular/common';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ProductosService } from '../../core/services/productos.service';
 import { CategoriasService } from '../../core/services/categorias.service';
+import { StockService } from '../../core/services/stock.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { Producto, ProductoForm } from '../../core/models/producto.model';
@@ -19,6 +20,7 @@ import { environment } from '../../../environments/environment';
 export class ProductosComponent implements OnInit {
   private svc = inject(ProductosService);
   private catSvc = inject(CategoriasService);
+  private stockSvc = inject(StockService);
   private auth = inject(AuthService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
@@ -35,6 +37,16 @@ export class ProductosComponent implements OnInit {
 
   imagenFile: File | null = null;
   imagenPreview: string | null = null;
+
+  modalAjusteAbierto = false;
+  productoAjustar: Producto | null = null;
+  guardandoAjuste = false;
+
+  formAjuste = this.fb.group({
+    tipo: ['ajuste_entrada' as 'ajuste_entrada' | 'ajuste_salida'],
+    cantidad: [1, [Validators.required, Validators.min(1)]],
+    motivo: [''],
+  });
 
   busquedaCtrl = new FormControl('');
   stockBajoCtrl = new FormControl(false);
@@ -188,6 +200,40 @@ export class ProductosComponent implements OnInit {
   cancelarEliminar() {
     this.modalEliminarAbierto = false;
     this.productoAEliminar = null;
+  }
+
+  abrirAjuste(p: Producto) {
+    this.productoAjustar = p;
+    this.formAjuste.reset({ tipo: 'ajuste_entrada', cantidad: 1, motivo: '' });
+    this.modalAjusteAbierto = true;
+  }
+
+  cerrarAjuste() {
+    this.modalAjusteAbierto = false;
+    this.productoAjustar = null;
+  }
+
+  guardarAjuste() {
+    if (this.formAjuste.invalid || !this.productoAjustar) return;
+    this.guardandoAjuste = true;
+    const { tipo, cantidad, motivo } = this.formAjuste.value;
+    this.stockSvc.ajustar({
+      producto_id: this.productoAjustar.id,
+      tipo: tipo as 'ajuste_entrada' | 'ajuste_salida',
+      cantidad: cantidad!,
+      motivo: motivo || undefined,
+    }).subscribe({
+      next: () => {
+        this.cerrarAjuste();
+        this.cargarProductos();
+        this.guardandoAjuste = false;
+        this.toast.exito('Stock ajustado correctamente');
+      },
+      error: (e) => {
+        this.guardandoAjuste = false;
+        this.toast.error(e.error?.detail || 'Error al ajustar el stock');
+      },
+    });
   }
 
   exportarStockBajoCSV() {

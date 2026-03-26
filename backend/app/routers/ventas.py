@@ -8,6 +8,7 @@ from app.models.venta import Venta
 from app.models.detalle_venta import DetalleVenta
 from app.models.producto import Producto
 from app.models.usuario import Usuario
+from app.models.movimiento_stock import MovimientoStock
 from app.schemas.venta import VentaCreate, VentaResponse, ResumenReporte, VentaPorDia, TopProducto
 from app.utils.security import get_current_user
 
@@ -70,7 +71,18 @@ def crear_venta(
             subtotal=d["subtotal"],
         )
         db.add(detalle)
+        stock_antes = d["producto"].stock
         d["producto"].stock -= d["cantidad"]
+        movimiento = MovimientoStock(
+            producto_id=d["producto"].id,
+            tipo="venta",
+            cantidad=d["cantidad"],
+            stock_antes=stock_antes,
+            stock_despues=d["producto"].stock,
+            motivo=nueva_venta.numero_boleta,
+            usuario_id=current_user.id,
+        )
+        db.add(movimiento)
 
     db.commit()
     db.refresh(nueva_venta)

@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.database import engine, Base, crear_base_de_datos
-from app.routers import auth, categorias, productos, ventas, clientes
+from app.routers import auth, categorias, productos, ventas, clientes, stock
 from app.seed import ejecutar_seed
 
 
@@ -44,6 +44,7 @@ app.include_router(categorias.router,  prefix="/api/categorias", tags=["Categor√
 app.include_router(productos.router,   prefix="/api/productos",  tags=["Productos"])
 app.include_router(ventas.router,      prefix="/api/ventas",     tags=["Ventas"])
 app.include_router(clientes.router,    prefix="/api/clientes",   tags=["Clientes"])
+app.include_router(stock.router,       prefix="/api/stock",      tags=["Stock"])
 
 os.makedirs("/app/static/productos", exist_ok=True)
 app.mount("/static", StaticFiles(directory="/app/static"), name="static")
