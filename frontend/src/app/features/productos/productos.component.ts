@@ -8,6 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { Producto, ProductoForm } from '../../core/models/producto.model';
 import { Categoria } from '../../core/models/categoria.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-productos',
@@ -31,6 +32,9 @@ export class ProductosComponent implements OnInit {
 
   modalEliminarAbierto = false;
   productoAEliminar: Producto | null = null;
+
+  imagenFile: File | null = null;
+  imagenPreview: string | null = null;
 
   busquedaCtrl = new FormControl('');
   stockBajoCtrl = new FormControl(false);
@@ -76,6 +80,8 @@ export class ProductosComponent implements OnInit {
 
   abrirModal(producto?: Producto) {
     this.productoEditando = producto ?? null;
+    this.imagenFile = null;
+    this.imagenPreview = null;
     if (producto) {
       this.form.patchValue({
         codigo: producto.codigo,
@@ -95,24 +101,63 @@ export class ProductosComponent implements OnInit {
   cerrarModal() {
     this.modalAbierto = false;
     this.productoEditando = null;
+    this.imagenFile = null;
+    this.imagenPreview = null;
+  }
+
+  seleccionarImagen(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.imagenFile = file;
+    const reader = new FileReader();
+    reader.onload = () => { this.imagenPreview = reader.result as string; };
+    reader.readAsDataURL(file);
+  }
+
+  imagenActual(): string | null {
+    if (this.imagenPreview) return this.imagenPreview;
+    if (this.productoEditando?.imagen_url) {
+      return `${environment.staticUrl}${this.productoEditando.imagen_url}`;
+    }
+    return null;
+  }
+
+  imagenUrl(producto: Producto): string | null {
+    return producto.imagen_url ? `${environment.staticUrl}${producto.imagen_url}` : null;
   }
 
   guardar() {
     if (this.form.invalid) return;
     this.guardando = true;
     const datos = this.form.value as ProductoForm;
+    const esEdicion = !!this.productoEditando;
 
     const op$ = this.productoEditando
       ? this.svc.actualizar(this.productoEditando.id, datos)
       : this.svc.crear(datos);
 
-    const esEdicion = !!this.productoEditando;
     op$.subscribe({
-      next: () => {
-        this.cerrarModal();
-        this.cargarProductos();
-        this.guardando = false;
-        this.toast.exito(esEdicion ? 'Producto actualizado correctamente' : 'Producto creado correctamente');
+      next: (p) => {
+        const finish = (msg: string) => {
+          this.cerrarModal();
+          this.cargarProductos();
+          this.guardando = false;
+          this.toast.exito(msg);
+        };
+        if (this.imagenFile) {
+          this.svc.subirImagen(p.id, this.imagenFile).subscribe({
+            next: () => finish(esEdicion ? 'Producto actualizado correctamente' : 'Producto creado correctamente'),
+            error: () => {
+              this.cerrarModal();
+              this.cargarProductos();
+              this.guardando = false;
+              this.toast.error('Producto guardado pero hubo un error al subir la imagen');
+            },
+          });
+        } else {
+          finish(esEdicion ? 'Producto actualizado correctamente' : 'Producto creado correctamente');
+        }
       },
       error: () => {
         this.guardando = false;

@@ -15,6 +15,7 @@ class Producto(Base):
     stock = Column(Integer, default=0)
     stock_minimo = Column(Integer, default=5)
     categoria_id = Column(Integer, ForeignKey("categorias.id"), nullable=True)
+    imagen_url = Column(String(500), nullable=True)
     activo = Column(Boolean, default=True)
     creado_en = Column(DateTime, server_default=func.now())
     actualizado_en = Column(DateTime, onupdate=func.now())

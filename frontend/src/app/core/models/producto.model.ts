@@ -8,6 +8,7 @@ export interface Producto {
   stock_minimo: number;
   categoria_id?: number;
   categoria_nombre?: string;
+  imagen_url?: string;
   activo: boolean;
   creado_en: string;
 }

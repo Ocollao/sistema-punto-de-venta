@@ -29,6 +29,7 @@ class ProductoUpdate(BaseModel):
 
 class ProductoResponse(ProductoBase):
     id: int
+    imagen_url: Optional[str] = None
     activo: bool
     creado_en: datetime
     categoria_nombre: Optional[str] = None

@@ -43,6 +43,9 @@ def crear_categorias_iniciales(db: Session):
         Categoria(nombre="Panaderia", descripcion="Pan, marraquetas, hallullas y masas"),
         Categoria(nombre="Limpieza", descripcion="Detergentes, desengrasantes y artículos de aseo"),
         Categoria(nombre="Electronica", descripcion="Cables, pilas, cargadores y accesorios"),
+        Categoria(nombre="Higiene Personal", descripcion="Shampoo, jabón, cepillos de dientes y desodorante"),
+        Categoria(nombre="Conservas y Despensa", descripcion="Atún, legumbres, arroz, fideos y salsas"),
+        Categoria(nombre="Congelados", descripcion="Helados, papas fritas congeladas y precocidos"),
     ]
     db.add_all(categorias)
     db.commit()
@@ -110,6 +113,68 @@ def crear_productos_iniciales(db: Session, cat_ids: dict):
                  categoria_id=cat_ids.get("Electronica"), activo=True),
         Producto(codigo="ELE-003", nombre="Audífonos in-ear", precio=7990, stock=3, stock_minimo=5,
                  categoria_id=cat_ids.get("Electronica"), activo=True),
+        Producto(codigo="ELE-004", nombre="Cargador USB doble 2.4A", precio=5990, stock=18, stock_minimo=5,
+                 categoria_id=cat_ids.get("Electronica"), activo=True),
+        Producto(codigo="ELE-005", nombre="Pilas AAA x4 unidades", precio=1790, stock=50, stock_minimo=10,
+                 categoria_id=cat_ids.get("Electronica"), activo=True),
+
+        # Higiene Personal
+        Producto(codigo="HIG-001", nombre="Shampoo anticaspa 400ml", precio=3490, stock=35, stock_minimo=8,
+                 categoria_id=cat_ids.get("Higiene Personal"), activo=True),
+        Producto(codigo="HIG-002", nombre="Jabón líquido antibacterial 250ml", precio=1990, stock=45, stock_minimo=10,
+                 categoria_id=cat_ids.get("Higiene Personal"), activo=True),
+        Producto(codigo="HIG-003", nombre="Desodorante aerosol 150ml", precio=2990, stock=28, stock_minimo=8,
+                 categoria_id=cat_ids.get("Higiene Personal"), activo=True),
+        Producto(codigo="HIG-004", nombre="Cepillo de dientes suave", precio=1490, stock=55, stock_minimo=10,
+                 categoria_id=cat_ids.get("Higiene Personal"), activo=True),
+        Producto(codigo="HIG-005", nombre="Pasta dental blanqueadora 90g", precio=2190, stock=40, stock_minimo=8,
+                 categoria_id=cat_ids.get("Higiene Personal"), activo=True),
+        Producto(codigo="HIG-006", nombre="Papel higiénico triple hoja x8", precio=4990, stock=2, stock_minimo=10,
+                 categoria_id=cat_ids.get("Higiene Personal"), activo=True),
+
+        # Conservas y Despensa
+        Producto(codigo="CON-001", nombre="Atún en agua 170g", precio=1290, stock=90, stock_minimo=15,
+                 categoria_id=cat_ids.get("Conservas y Despensa"), activo=True),
+        Producto(codigo="CON-002", nombre="Arroz grado 1 — 1kg", precio=1490, stock=75, stock_minimo=15,
+                 categoria_id=cat_ids.get("Conservas y Despensa"), activo=True),
+        Producto(codigo="CON-003", nombre="Fideos spaghetti 400g", precio=990, stock=60, stock_minimo=12,
+                 categoria_id=cat_ids.get("Conservas y Despensa"), activo=True),
+        Producto(codigo="CON-004", nombre="Salsa de tomate 400g", precio=1190, stock=50, stock_minimo=10,
+                 categoria_id=cat_ids.get("Conservas y Despensa"), activo=True),
+        Producto(codigo="CON-005", nombre="Lentejas 500g", precio=1390, stock=40, stock_minimo=10,
+                 categoria_id=cat_ids.get("Conservas y Despensa"), activo=True),
+        Producto(codigo="CON-006", nombre="Aceite vegetal 900ml", precio=2490, stock=30, stock_minimo=8,
+                 categoria_id=cat_ids.get("Conservas y Despensa"), activo=True),
+        Producto(codigo="CON-007", nombre="Azúcar 1kg", precio=1290, stock=55, stock_minimo=12,
+                 categoria_id=cat_ids.get("Conservas y Despensa"), activo=True),
+        Producto(codigo="CON-008", nombre="Café instantáneo 170g", precio=3990, stock=4, stock_minimo=8,
+                 categoria_id=cat_ids.get("Conservas y Despensa"), activo=True),
+
+        # Congelados
+        Producto(codigo="COG-001", nombre="Helado de vainilla 1L", precio=3490, stock=20, stock_minimo=6,
+                 categoria_id=cat_ids.get("Congelados"), activo=True),
+        Producto(codigo="COG-002", nombre="Papas fritas congeladas 500g", precio=2490, stock=25, stock_minimo=6,
+                 categoria_id=cat_ids.get("Congelados"), activo=True),
+        Producto(codigo="COG-003", nombre="Nuggets de pollo 400g", precio=3990, stock=18, stock_minimo=5,
+                 categoria_id=cat_ids.get("Congelados"), activo=True),
+        Producto(codigo="COG-004", nombre="Pizza congelada 4 porciones", precio=4990, stock=3, stock_minimo=5,
+                 categoria_id=cat_ids.get("Congelados"), activo=True),
+
+        # Más bebidas
+        Producto(codigo="BEB-006", nombre="Té negro x20 bolsitas", precio=1490, stock=45, stock_minimo=8,
+                 categoria_id=cat_ids.get("Bebidas"), activo=True),
+        Producto(codigo="BEB-007", nombre="Néctar durazno 1L", precio=1190, stock=55, stock_minimo=10,
+                 categoria_id=cat_ids.get("Bebidas"), activo=True),
+        Producto(codigo="BEB-008", nombre="Bebida sin azúcar 1.5L", precio=1390, stock=70, stock_minimo=15,
+                 categoria_id=cat_ids.get("Bebidas"), activo=True),
+
+        # Más snacks
+        Producto(codigo="SNK-005", nombre="Chicles menta x10 unidades", precio=490, stock=80, stock_minimo=20,
+                 categoria_id=cat_ids.get("Snacks y Dulces"), activo=True),
+        Producto(codigo="SNK-006", nombre="Caramelos surtidos 150g", precio=890, stock=60, stock_minimo=15,
+                 categoria_id=cat_ids.get("Snacks y Dulces"), activo=True),
+        Producto(codigo="SNK-007", nombre="Barra de cereal x6 unidades", precio=2490, stock=35, stock_minimo=8,
+                 categoria_id=cat_ids.get("Snacks y Dulces"), activo=True),
     ]
     db.add_all(productos)
     db.commit()
@@ -137,6 +202,20 @@ def crear_clientes_iniciales(db: Session):
                 email="f.castro@gmail.com", telefono="+56 9 3210 9876", activo=True),
         Cliente(rut="7.654.321-6", nombre="Empresa Retail SpA",
                 email="compras@retail.cl", telefono="+56 2 2345 6789", activo=True),
+        Cliente(rut="13.111.222-3", nombre="Ignacio Herrera Vidal",
+                email="i.herrera@gmail.com", telefono="+56 9 2109 8765", activo=True),
+        Cliente(rut="17.888.999-0", nombre="Catalina Romero Fuentes",
+                email="catalina.romero@icloud.com", telefono="+56 9 1098 7654", activo=True),
+        Cliente(rut="10.333.444-5", nombre="Luis Navarro Espinoza",
+                email="luis.navarro@empresa.cl", telefono="+56 9 0987 6543", activo=True),
+        Cliente(rut="19.555.666-7", nombre="Paola Morales Ibáñez",
+                email="p.morales@outlook.com", telefono="+56 9 9988 7766", activo=True),
+        Cliente(rut="8.777.888-9", nombre="Distribuidora Norte Ltda",
+                email="pedidos@disnorte.cl", telefono="+56 2 2987 6543", activo=True),
+        Cliente(rut="20.111.222-K", nombre="Sebastián Pizarro Leiva",
+                email="sebas.pizarro@gmail.com", telefono="+56 9 8877 6655", activo=True),
+        Cliente(rut="6.444.555-8", nombre="Patricia Vega Contreras",
+                email="patricia.vega@hotmail.com", telefono="+56 9 7766 5544", activo=True),
     ]
     db.add_all(clientes)
     db.commit()

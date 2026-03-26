@@ -27,20 +27,32 @@
     <div class="flex-1 overflow-y-auto pr-1">
       <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
         <button *ngFor="let p of productos" (click)="agregarAlCarrito(p)"
-          class="bg-white border border-slate-200 rounded-xl p-3 md:p-4 text-left
+          class="bg-white border border-slate-200 rounded-xl overflow-hidden text-left
                  hover:border-blue-400 hover:shadow-md transition-all active:scale-95 group">
-          <div class="flex items-start justify-between mb-2">
-            <code class="text-xs text-slate-400 truncate max-w-16">{{ p.codigo }}</code>
-            <span [ngClass]="p.stock <= p.stock_minimo
-              ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-700'"
-              class="text-xs px-1.5 py-0.5 rounded font-semibold shrink-0">
-              {{ p.stock }}
-            </span>
+          <!-- Imagen -->
+          <div class="w-full h-28 bg-slate-100 overflow-hidden flex items-center justify-center">
+            <img *ngIf="imagenUrl(p)" [src]="imagenUrl(p)!" alt="{{ p.nombre }}"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"/>
+            <svg *ngIf="!imagenUrl(p)" class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
           </div>
-          <p class="font-semibold text-slate-800 text-sm leading-tight mb-2 group-hover:text-blue-700 transition-colors line-clamp-2">
-            {{ p.nombre }}
-          </p>
-          <p class="text-blue-600 font-bold text-sm">{{ formatearMonto(p.precio) }}</p>
+          <!-- Info -->
+          <div class="p-3">
+            <div class="flex items-start justify-between mb-1">
+              <code class="text-xs text-slate-400 truncate max-w-16">{{ p.codigo }}</code>
+              <span [ngClass]="p.stock <= p.stock_minimo
+                ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-700'"
+                class="text-xs px-1.5 py-0.5 rounded font-semibold shrink-0">
+                {{ p.stock }}
+              </span>
+            </div>
+            <p class="font-semibold text-slate-800 text-sm leading-tight mb-1.5 group-hover:text-blue-700 transition-colors line-clamp-2">
+              {{ p.nombre }}
+            </p>
+            <p class="text-blue-600 font-bold text-sm">{{ formatearMonto(p.precio) }}</p>
+          </div>
         </button>
       </div>
 

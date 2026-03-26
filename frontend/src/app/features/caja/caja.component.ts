@@ -6,6 +6,7 @@ import { ProductosService } from '../../core/services/productos.service';
 import { VentasService } from '../../core/services/ventas.service';
 import { Producto } from '../../core/models/producto.model';
 import { Venta } from '../../core/models/venta.model';
+import { environment } from '../../../environments/environment';
 
 interface ItemCarrito {
   producto: Producto;
@@ -106,6 +107,10 @@ export class CajaComponent implements OnInit {
   cerrarModalExito() {
     this.ventaExitosa = null;
     this.cargarProductos();
+  }
+
+  imagenUrl(producto: Producto): string | null {
+    return producto.imagen_url ? `${environment.staticUrl}${producto.imagen_url}` : null;
   }
 
   formatearMonto(valor: number): string {

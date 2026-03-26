@@ -1,10 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
+import os, uuid, shutil
 from app.database import get_db
 from app.models.producto import Producto
 from app.schemas.producto import ProductoCreate, ProductoUpdate, ProductoResponse
 from app.utils.security import get_current_user, require_admin
+
+UPLOAD_DIR = "/app/static/productos"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 router = APIRouter()
 
@@ -85,3 +89,38 @@ def eliminar_producto(producto_id: int, db: Session = Depends(get_db), _=Depends
 
     producto.activo = False
     db.commit()
+
+
+@router.post("/{producto_id}/imagen", response_model=ProductoResponse)
+def subir_imagen(
+    producto_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    _=Depends(require_admin),
+):
+    producto = db.query(Producto).filter(Producto.id == producto_id).first()
+    if not producto:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in [".jpg", ".jpeg", ".png", ".webp"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Formato no permitido. Use JPG, PNG o WebP",
+        )
+
+    nombre_archivo = f"{uuid.uuid4()}{ext}"
+    ruta = os.path.join(UPLOAD_DIR, nombre_archivo)
+
+    with open(ruta, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+
+    if producto.imagen_url:
+        old_path = os.path.join(UPLOAD_DIR, os.path.basename(producto.imagen_url))
+        if os.path.exists(old_path):
+            os.remove(old_path)
+
+    producto.imagen_url = f"/static/productos/{nombre_archivo}"
+    db.commit()
+    db.refresh(producto)
+    return producto

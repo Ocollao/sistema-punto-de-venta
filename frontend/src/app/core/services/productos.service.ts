@@ -27,4 +27,10 @@ export class ProductosService {
   eliminar(id: number) {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
+
+  subirImagen(id: number, file: File) {
+    const fd = new FormData();
+    fd.append('file', file);
+    return this.http.post<Producto>(`${this.base}/${id}/imagen`, fd);
+  }
 }
