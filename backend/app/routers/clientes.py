@@ -54,3 +54,13 @@ def actualizar_cliente(
     db.commit()
     db.refresh(cliente)
     return cliente
+
+
+@router.delete("/{cliente_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_cliente(cliente_id: int, db: Session = Depends(get_db), _=Depends(get_current_user)):
+    cliente = db.query(Cliente).filter(Cliente.id == cliente_id).first()
+    if not cliente:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+
+    cliente.activo = False
+    db.commit()

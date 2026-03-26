@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIf, NgFor, DatePipe } from '@angular/common';
 import { CategoriasService } from '../../core/services/categorias.service';
+import { ToastService } from '../../core/services/toast.service';
 import { Categoria, CategoriaForm } from '../../core/models/categoria.model';
 
 @Component({
@@ -11,14 +12,17 @@ import { Categoria, CategoriaForm } from '../../core/models/categoria.model';
   templateUrl: './categorias.component.html',
 })
 export class CategoriasComponent implements OnInit {
-  private svc = inject(CategoriasService);
-  private fb  = inject(FormBuilder);
+  private svc   = inject(CategoriasService);
+  private toast = inject(ToastService);
+  private fb    = inject(FormBuilder);
 
   categorias: Categoria[] = [];
   cargando     = false;
   modalAbierto = false;
   guardando    = false;
   categoriaEditando: Categoria | null = null;
+  modalEliminarAbierto = false;
+  categoriaAEliminar: Categoria | null = null;
 
   form = this.fb.group({
     nombre:      ['', Validators.required],
@@ -51,19 +55,47 @@ export class CategoriasComponent implements OnInit {
     if (this.form.invalid) return;
     this.guardando = true;
     const datos = this.form.value as CategoriaForm;
+    const esEdicion = !!this.categoriaEditando;
 
-    const op$ = this.categoriaEditando
-      ? this.svc.actualizar(this.categoriaEditando.id, datos)
+    const op$ = esEdicion
+      ? this.svc.actualizar(this.categoriaEditando!.id, datos)
       : this.svc.crear(datos);
 
     op$.subscribe({
-      next: () => { this.cerrarModal(); this.cargarCategorias(); this.guardando = false; },
-      error: () => { this.guardando = false; },
+      next: () => {
+        this.cerrarModal();
+        this.cargarCategorias();
+        this.guardando = false;
+        this.toast.exito(esEdicion ? 'Categoría actualizada correctamente' : 'Categoría creada correctamente');
+      },
+      error: () => {
+        this.guardando = false;
+        this.toast.error('Error al guardar la categoría. Intenta nuevamente.');
+      },
     });
   }
 
   eliminar(cat: Categoria) {
-    if (!confirm(`¿Eliminar la categoría "${cat.nombre}"?`)) return;
-    this.svc.eliminar(cat.id).subscribe({ next: () => this.cargarCategorias() });
+    this.categoriaAEliminar = cat;
+    this.modalEliminarAbierto = true;
+  }
+
+  confirmarEliminar() {
+    if (!this.categoriaAEliminar) return;
+    const nombre = this.categoriaAEliminar.nombre;
+    this.svc.eliminar(this.categoriaAEliminar.id).subscribe({
+      next: () => {
+        this.cargarCategorias();
+        this.toast.exito(`Categoría "${nombre}" eliminada`);
+      },
+      error: () => this.toast.error('Error al eliminar la categoría'),
+    });
+    this.modalEliminarAbierto = false;
+    this.categoriaAEliminar = null;
+  }
+
+  cancelarEliminar() {
+    this.modalEliminarAbierto = false;
+    this.categoriaAEliminar = null;
   }
 }

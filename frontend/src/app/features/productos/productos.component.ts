@@ -5,6 +5,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ProductosService } from '../../core/services/productos.service';
 import { CategoriasService } from '../../core/services/categorias.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 import { Producto, ProductoForm } from '../../core/models/producto.model';
 import { Categoria } from '../../core/models/categoria.model';
 
@@ -18,6 +19,7 @@ export class ProductosComponent implements OnInit {
   private svc = inject(ProductosService);
   private catSvc = inject(CategoriasService);
   private auth = inject(AuthService);
+  private toast = inject(ToastService);
   private fb = inject(FormBuilder);
 
   productos: Producto[] = [];
@@ -26,6 +28,9 @@ export class ProductosComponent implements OnInit {
   modalAbierto = false;
   guardando = false;
   productoEditando: Producto | null = null;
+
+  modalEliminarAbierto = false;
+  productoAEliminar: Producto | null = null;
 
   busquedaCtrl = new FormControl('');
   stockBajoCtrl = new FormControl(false);
@@ -101,15 +106,43 @@ export class ProductosComponent implements OnInit {
       ? this.svc.actualizar(this.productoEditando.id, datos)
       : this.svc.crear(datos);
 
+    const esEdicion = !!this.productoEditando;
     op$.subscribe({
-      next: () => { this.cerrarModal(); this.cargarProductos(); this.guardando = false; },
-      error: () => { this.guardando = false; },
+      next: () => {
+        this.cerrarModal();
+        this.cargarProductos();
+        this.guardando = false;
+        this.toast.exito(esEdicion ? 'Producto actualizado correctamente' : 'Producto creado correctamente');
+      },
+      error: () => {
+        this.guardando = false;
+        this.toast.error('Error al guardar el producto. Intenta nuevamente.');
+      },
     });
   }
 
   eliminar(p: Producto) {
-    if (!confirm(`¿Eliminar el producto "${p.nombre}"?`)) return;
-    this.svc.eliminar(p.id).subscribe({ next: () => this.cargarProductos() });
+    this.productoAEliminar = p;
+    this.modalEliminarAbierto = true;
+  }
+
+  confirmarEliminar() {
+    if (!this.productoAEliminar) return;
+    const nombre = this.productoAEliminar.nombre;
+    this.svc.eliminar(this.productoAEliminar.id).subscribe({
+      next: () => {
+        this.cargarProductos();
+        this.toast.exito(`Producto "${nombre}" eliminado`);
+      },
+      error: () => this.toast.error('Error al eliminar el producto'),
+    });
+    this.modalEliminarAbierto = false;
+    this.productoAEliminar = null;
+  }
+
+  cancelarEliminar() {
+    this.modalEliminarAbierto = false;
+    this.productoAEliminar = null;
   }
 
   formatearMonto(valor: number): string {

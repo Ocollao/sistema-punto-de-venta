@@ -21,4 +21,8 @@ export class ClientesService {
   actualizar(id: number, data: Partial<ClienteForm>) {
     return this.http.put<Cliente>(`${this.base}/${id}`, data);
   }
+
+  eliminar(id: number) {
+    return this.http.delete<void>(`${this.base}/${id}`);
+  }
 }

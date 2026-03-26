@@ -3,6 +3,7 @@ import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angu
 import { NgIf, NgFor, DatePipe } from '@angular/common';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ClientesService } from '../../core/services/clientes.service';
+import { ToastService } from '../../core/services/toast.service';
 import { Cliente, ClienteForm } from '../../core/models/cliente.model';
 
 @Component({
@@ -12,14 +13,17 @@ import { Cliente, ClienteForm } from '../../core/models/cliente.model';
   templateUrl: './clientes.component.html',
 })
 export class ClientesComponent implements OnInit {
-  private svc = inject(ClientesService);
-  private fb  = inject(FormBuilder);
+  private svc   = inject(ClientesService);
+  private toast = inject(ToastService);
+  private fb    = inject(FormBuilder);
 
   clientes: Cliente[] = [];
   cargando     = false;
   modalAbierto = false;
   guardando    = false;
   clienteEditando: Cliente | null = null;
+  modalEliminarAbierto = false;
+  clienteAEliminar: Cliente | null = null;
 
   busquedaCtrl = new FormControl('');
 
@@ -64,14 +68,47 @@ export class ClientesComponent implements OnInit {
     if (this.form.invalid) return;
     this.guardando = true;
     const datos = this.form.value as ClienteForm;
+    const esEdicion = !!this.clienteEditando;
 
-    const op$ = this.clienteEditando
-      ? this.svc.actualizar(this.clienteEditando.id, datos)
+    const op$ = esEdicion
+      ? this.svc.actualizar(this.clienteEditando!.id, datos)
       : this.svc.crear(datos);
 
     op$.subscribe({
-      next: () => { this.cerrarModal(); this.cargarClientes(); this.guardando = false; },
-      error: () => { this.guardando = false; },
+      next: () => {
+        this.cerrarModal();
+        this.cargarClientes();
+        this.guardando = false;
+        this.toast.exito(esEdicion ? 'Cliente actualizado correctamente' : 'Cliente registrado correctamente');
+      },
+      error: () => {
+        this.guardando = false;
+        this.toast.error('Error al guardar el cliente. Intenta nuevamente.');
+      },
     });
+  }
+
+  eliminar(cliente: Cliente) {
+    this.clienteAEliminar = cliente;
+    this.modalEliminarAbierto = true;
+  }
+
+  confirmarEliminar() {
+    if (!this.clienteAEliminar) return;
+    const nombre = this.clienteAEliminar.nombre;
+    this.svc.eliminar(this.clienteAEliminar.id).subscribe({
+      next: () => {
+        this.cargarClientes();
+        this.toast.exito(`Cliente "${nombre}" eliminado`);
+      },
+      error: () => this.toast.error('Error al eliminar el cliente'),
+    });
+    this.modalEliminarAbierto = false;
+    this.clienteAEliminar = null;
+  }
+
+  cancelarEliminar() {
+    this.modalEliminarAbierto = false;
+    this.clienteAEliminar = null;
   }
 }
