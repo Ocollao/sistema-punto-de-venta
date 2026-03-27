@@ -86,21 +86,28 @@
           <tbody class="divide-y divide-slate-100">
             <tr *ngFor="let v of ventas" class="hover:bg-slate-50 transition-colors">
               <td class="px-6 py-4">
-                <code class="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{{ v.numero_boleta }}</code>
+                <code *ngIf="v.numero_boleta"
+                  class="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{{ v.numero_boleta }}</code>
+                <span *ngIf="!v.numero_boleta" class="text-slate-300 text-xs">—</span>
               </td>
-              <td class="px-6 py-4 text-slate-600">{{ v.creado_en | date:'dd/MM/yyyy HH:mm':'':'es-CL' }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ v.creado_en | date:'dd/MM/yyyy HH:mm' }}</td>
               <td class="px-6 py-4 text-center">
-                <span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">
+                <span *ngIf="v.metodo_pago"
+                  class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">
                   {{ etiquetaMetodo(v.metodo_pago) }}
                 </span>
+                <span *ngIf="!v.metodo_pago" class="text-slate-300 text-xs">—</span>
               </td>
-              <td class="px-6 py-4 text-right font-bold text-slate-800">{{ formatearMonto(v.total) }}</td>
+              <td class="px-6 py-4 text-right font-bold text-slate-800">
+                {{ v.total != null ? formatearMonto(v.total) : '—' }}
+              </td>
               <td class="px-6 py-4 text-center">
-                <span [ngClass]="v.estado === 'completada'
+                <span *ngIf="v.estado" [ngClass]="v.estado === 'completada'
                   ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'"
                   class="text-xs px-2.5 py-1 rounded-full font-medium capitalize">
                   {{ v.estado }}
                 </span>
+                <span *ngIf="!v.estado" class="text-slate-300 text-xs">—</span>
               </td>
               <td class="px-6 py-4 text-right">
                 <button (click)="verDetalle(v)"
@@ -121,7 +128,7 @@
               <code class="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{{ v.numero_boleta }}</code>
               <p class="text-xs text-slate-400 mt-1">{{ v.creado_en | date:'dd/MM/yyyy HH:mm' }}</p>
             </div>
-            <span [ngClass]="v.estado === 'completada'
+            <span *ngIf="v.estado" [ngClass]="v.estado === 'completada'
               ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'"
               class="text-xs px-2.5 py-1 rounded-full font-medium capitalize shrink-0">
               {{ v.estado }}
@@ -129,10 +136,13 @@
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded-full">
+              <span *ngIf="v.metodo_pago"
+                class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded-full">
                 {{ etiquetaMetodo(v.metodo_pago) }}
               </span>
-              <span class="font-bold text-slate-800 text-sm">{{ formatearMonto(v.total) }}</span>
+              <span class="font-bold text-slate-800 text-sm">
+                {{ v.total != null ? formatearMonto(v.total) : '—' }}
+              </span>
             </div>
             <button (click)="verDetalle(v)"
               class="text-xs text-blue-600 font-semibold hover:underline">
