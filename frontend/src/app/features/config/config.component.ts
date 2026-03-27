@@ -54,7 +54,16 @@ export class ConfigComponent implements OnInit {
   guardar() {
     if (this.form.invalid) return;
     this.guardando = true;
-    this.svc.actualizar(this.form.value).subscribe({
+    const raw = this.form.value;
+    const datos = {
+      nombre:      raw.nombre      ?? undefined,
+      rut:         raw.rut         ?? undefined,
+      direccion:   raw.direccion   ?? undefined,
+      telefono:    raw.telefono    ?? undefined,
+      email:       raw.email       ?? undefined,
+      mensaje_pie: raw.mensaje_pie ?? undefined,
+    };
+    this.svc.actualizar(datos).subscribe({
       next: () => {
         this.guardando = false;
         this.toast.exito('Configuración guardada correctamente');
