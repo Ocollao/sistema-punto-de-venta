@@ -57,10 +57,25 @@ export interface MetodoPagoResumen {
   total: number;
 }
 
+export interface HoraPico {
+  hora: string;
+  cantidad: number;
+}
+
+export interface TopProductoDia {
+  nombre: string;
+  cantidad: number;
+  total: number;
+}
+
 export interface CierreDiario {
   fecha: string;
   total_ventas: number;
   ingresos_totales: number;
   total_descuentos: number;
+  ticket_promedio: number;
   por_metodo: MetodoPagoResumen[];
+  hora_pico: HoraPico | null;
+  top_productos: TopProductoDia[];
+  cierre_guardado: boolean;
 }

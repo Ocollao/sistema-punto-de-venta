@@ -41,6 +41,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/config/config.component').then(m => m.ConfigComponent),
       },
       {
+        path: 'cierre',
+        loadComponent: () => import('./features/cierre/cierre.component').then(m => m.CierreComponent),
+      },
+      {
         path: 'usuarios',
         loadComponent: () => import('./features/usuarios/usuarios.component').then(m => m.UsuariosComponent),
       },

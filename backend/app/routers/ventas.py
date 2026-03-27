@@ -1,3 +1,4 @@
+from collections import Counter
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, cast, Date
@@ -9,7 +10,11 @@ from app.models.detalle_venta import DetalleVenta
 from app.models.producto import Producto
 from app.models.usuario import Usuario
 from app.models.movimiento_stock import MovimientoStock
-from app.schemas.venta import VentaCreate, VentaResponse, ResumenReporte, VentaPorDia, TopProducto, CierreDiario, MetodoPagoResumen
+from app.models.cierre_caja import CierreCaja
+from app.schemas.venta import (
+    VentaCreate, VentaResponse, ResumenReporte, VentaPorDia, TopProducto,
+    CierreDiario, MetodoPagoResumen, HoraPico, TopProductoDia,
+)
 from app.utils.security import get_current_user
 
 router = APIRouter()
@@ -191,11 +196,16 @@ def cierre_diario(
     inicio = datetime.combine(dia, datetime.min.time())
     fin = datetime.combine(dia, datetime.max.time())
 
-    ventas_dia = db.query(Venta).filter(
+    ventas_dia = db.query(Venta).options(joinedload(Venta.detalles)).filter(
         Venta.estado == "completada",
         Venta.creado_en >= inicio,
         Venta.creado_en <= fin,
     ).all()
+
+    total_v = len(ventas_dia)
+    ingresos = sum(v.total for v in ventas_dia)
+    descuentos = sum(v.descuento for v in ventas_dia)
+    ticket_promedio = ingresos / total_v if total_v > 0 else 0.0
 
     por_metodo: dict = {}
     for v in ventas_dia:
@@ -203,15 +213,49 @@ def cierre_diario(
         m["cantidad"] += 1
         m["total"] += v.total
 
+    horas = [v.creado_en.hour for v in ventas_dia if v.creado_en]
+    hora_pico = None
+    if horas:
+        hora_num, cant_hora = Counter(horas).most_common(1)[0]
+        hora_pico = HoraPico(hora=f"{hora_num:02d}:00", cantidad=cant_hora)
+
+    top = (
+        db.query(
+            Producto.nombre,
+            func.sum(DetalleVenta.cantidad).label("cantidad"),
+            func.sum(DetalleVenta.subtotal).label("total"),
+        )
+        .join(DetalleVenta, DetalleVenta.producto_id == Producto.id)
+        .join(Venta, Venta.id == DetalleVenta.venta_id)
+        .filter(
+            Venta.estado == "completada",
+            Venta.creado_en >= inicio,
+            Venta.creado_en <= fin,
+        )
+        .group_by(Producto.nombre)
+        .order_by(func.sum(DetalleVenta.subtotal).desc())
+        .limit(5)
+        .all()
+    )
+
+    cierre_guardado = db.query(CierreCaja).filter(CierreCaja.fecha == dia).first() is not None
+
     return CierreDiario(
         fecha=str(dia),
-        total_ventas=len(ventas_dia),
-        ingresos_totales=sum(v.total for v in ventas_dia),
-        total_descuentos=sum(v.descuento for v in ventas_dia),
+        total_ventas=total_v,
+        ingresos_totales=ingresos,
+        total_descuentos=descuentos,
+        ticket_promedio=ticket_promedio,
         por_metodo=[
             MetodoPagoResumen(metodo=k, cantidad=v["cantidad"], total=v["total"])
             for k, v in por_metodo.items()
         ],
+        hora_pico=hora_pico,
+        top_productos=[
+            TopProductoDia(nombre=r.nombre, cantidad=int(r.cantidad), total=float(r.total or 0.0))
+            for r in top
+        ],
+        cierre_guardado=cierre_guardado,
     )
 
 

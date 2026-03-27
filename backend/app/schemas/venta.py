@@ -70,9 +70,24 @@ class MetodoPagoResumen(BaseModel):
     total: float
 
 
+class HoraPico(BaseModel):
+    hora: str
+    cantidad: int
+
+
+class TopProductoDia(BaseModel):
+    nombre: str
+    cantidad: int
+    total: float
+
+
 class CierreDiario(BaseModel):
     fecha: str
     total_ventas: int
     ingresos_totales: float
     total_descuentos: float
+    ticket_promedio: float
     por_metodo: List[MetodoPagoResumen]
+    hora_pico: Optional[HoraPico] = None
+    top_productos: List[TopProductoDia] = []
+    cierre_guardado: bool = False

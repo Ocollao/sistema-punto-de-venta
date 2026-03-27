@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la \"c:\\\\Users\\\\Fraug\\\\Desktop\\\\Portafolio\\\\frontend\\\\src\\\\app\\\\features\"\" 2>/dev/null | grep -v ''^d'' || find \"c:UsersFraugDesktopPortafoliofrontendsrcappfeatures \" -maxdepth 1 -type f)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\Fraug\\Desktop\\Portafolio\\frontend\\src\\app\\features\\clientes"
+    ]
+  }
+}
