@@ -3,7 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIf, NgFor, NgClass } from '@angular/common';
 import { UsuariosService } from '../../core/services/usuarios.service';
 import { ToastService } from '../../core/services/toast.service';
-import { Usuario } from '../../core/models/usuario.model';
+import { Usuario, UsuarioUpdate } from '../../core/models/usuario.model';
 
 @Component({
   selector: 'app-usuarios',
@@ -65,8 +65,11 @@ export class UsuariosComponent implements OnInit {
     const raw = this.form.getRawValue();
 
     if (this.editando) {
-      const datos: Record<string, unknown> = { nombre: raw.nombre, rol: raw.rol };
-      if (raw.password) datos['password'] = raw.password;
+      const datos: UsuarioUpdate = {
+        nombre: raw.nombre ?? undefined,
+        rol: raw.rol ?? undefined,
+      };
+      if (raw.password) datos.password = raw.password ?? undefined;
       this.svc.actualizar(this.editando.id, datos).subscribe({
         next: updated => {
           this.guardando = false;
