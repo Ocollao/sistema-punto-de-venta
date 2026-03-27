@@ -50,3 +50,17 @@ export interface TopProducto {
   cantidad_vendida: number;
   ingresos: number;
 }
+
+export interface MetodoPagoResumen {
+  metodo: string;
+  cantidad: number;
+  total: number;
+}
+
+export interface CierreDiario {
+  fecha: string;
+  total_ventas: number;
+  ingresos_totales: number;
+  total_descuentos: number;
+  por_metodo: MetodoPagoResumen[];
+}

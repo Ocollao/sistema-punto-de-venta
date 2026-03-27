@@ -62,3 +62,17 @@ class TopProducto(BaseModel):
     nombre: str
     cantidad_vendida: int
     ingresos: float
+
+
+class MetodoPagoResumen(BaseModel):
+    metodo: str
+    cantidad: int
+    total: float
+
+
+class CierreDiario(BaseModel):
+    fecha: str
+    total_ventas: int
+    ingresos_totales: float
+    total_descuentos: float
+    por_metodo: List[MetodoPagoResumen]

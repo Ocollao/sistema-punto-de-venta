@@ -17,6 +17,7 @@ class UsuarioUpdate(BaseModel):
     nombre: Optional[str] = None
     rol: Optional[str] = None
     activo: Optional[bool] = None
+    password: Optional[str] = None
 
 
 class UsuarioResponse(UsuarioBase):

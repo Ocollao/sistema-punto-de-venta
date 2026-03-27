@@ -9,7 +9,7 @@ from app.models.detalle_venta import DetalleVenta
 from app.models.producto import Producto
 from app.models.usuario import Usuario
 from app.models.movimiento_stock import MovimientoStock
-from app.schemas.venta import VentaCreate, VentaResponse, ResumenReporte, VentaPorDia, TopProducto
+from app.schemas.venta import VentaCreate, VentaResponse, ResumenReporte, VentaPorDia, TopProducto, CierreDiario, MetodoPagoResumen
 from app.utils.security import get_current_user
 
 router = APIRouter()
@@ -179,6 +179,40 @@ def top_productos(
         {"nombre": r.nombre, "cantidad_vendida": r.cantidad_vendida, "ingresos": r.ingresos or 0.0}
         for r in resultados
     ]
+
+
+@router.get("/cierre-diario", response_model=CierreDiario)
+def cierre_diario(
+    fecha: Optional[date] = Query(None),
+    db: Session = Depends(get_db),
+    _=Depends(get_current_user),
+):
+    dia = fecha or date.today()
+    inicio = datetime.combine(dia, datetime.min.time())
+    fin = datetime.combine(dia, datetime.max.time())
+
+    ventas_dia = db.query(Venta).filter(
+        Venta.estado == "completada",
+        Venta.creado_en >= inicio,
+        Venta.creado_en <= fin,
+    ).all()
+
+    por_metodo: dict = {}
+    for v in ventas_dia:
+        m = por_metodo.setdefault(v.metodo_pago, {"cantidad": 0, "total": 0.0})
+        m["cantidad"] += 1
+        m["total"] += v.total
+
+    return CierreDiario(
+        fecha=str(dia),
+        total_ventas=len(ventas_dia),
+        ingresos_totales=sum(v.total for v in ventas_dia),
+        total_descuentos=sum(v.descuento for v in ventas_dia),
+        por_metodo=[
+            MetodoPagoResumen(metodo=k, cantidad=v["cantidad"], total=v["total"])
+            for k, v in por_metodo.items()
+        ],
+    )
 
 
 @router.get("/{venta_id}", response_model=VentaResponse)

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Venta, VentaCreate, ResumenReporte, VentaPorDia, TopProducto } from '../models/venta.model';
+import { Venta, VentaCreate, ResumenReporte, VentaPorDia, TopProducto, CierreDiario } from '../models/venta.model';
 
 @Injectable({ providedIn: 'root' })
 export class VentasService {
@@ -39,6 +39,12 @@ export class VentasService {
   topProductos(limite = 5) {
     return this.http.get<TopProducto[]>(`${this.base}/reporte/top-productos`, {
       params: new HttpParams().set('limite', limite.toString()),
+    });
+  }
+
+  cierreDiario(fecha: string) {
+    return this.http.get<CierreDiario>(`${this.base}/cierre-diario`, {
+      params: new HttpParams().set('fecha', fecha),
     });
   }
 }

@@ -40,6 +40,10 @@ export const routes: Routes = [
         path: 'config',
         loadComponent: () => import('./features/config/config.component').then(m => m.ConfigComponent),
       },
+      {
+        path: 'usuarios',
+        loadComponent: () => import('./features/usuarios/usuarios.component').then(m => m.UsuariosComponent),
+      },
     ],
   },
   { path: '**', redirectTo: '' },
