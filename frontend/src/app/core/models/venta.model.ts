@@ -16,7 +16,6 @@ export interface Venta {
   metodo_pago: string;
   estado: string;
   usuario_id: number;
-  cliente_id?: number;
   creado_en: string;
   detalles: DetalleVenta[];
 }
@@ -31,7 +30,6 @@ export interface VentaCreate {
   items: ItemCarritoPayload[];
   descuento: number;
   metodo_pago: string;
-  cliente_id?: number;
 }
 
 export interface ResumenReporte {
